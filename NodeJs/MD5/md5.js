@@ -14,11 +14,13 @@ var connection = mysql.createConnection({
 var ipService ="127.0.0.1";
 var puerto=1337;
 
+/*ATOM */
+
 
 
 /********* Metodo que levanat el servicio ************/
 http.createServer(function (req, res) {
-    
+
     var metodo = req.method;
     var urlRequest = req.url;
     var ipOrigen = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -36,7 +38,7 @@ http.createServer(function (req, res) {
 
     connection.query('SELECT * FROM target WHERE auth_key=\''+oauthToken+'\'' , function (err, result, fields) {
         if (err){
-            
+
             res.writeHead(400, {'Content-Type': 'application/json'});
             res.end('{\"resp\": \"400\",\"desc\": \"Problemas de conexion\"}');
             throw err;
@@ -55,8 +57,8 @@ http.createServer(function (req, res) {
             }
 
         }
-            
-        
+
+
     });
 
 }).listen(puerto, ipService);
@@ -76,7 +78,7 @@ function metodos(metodo, urlRequest, res){
 
             /*request('http://69.195.197.50:4045/callInProcess?do={"ag":"'+numeroAgencia+'","mc":"'+numerMiniCall+'","phone":"'+parametros.numero+'"}', function (error, response, body) {
 
-                
+
               if (!error) {
 
                 var respuesta = JSON.stringify(eval("(" + body + ")"));
@@ -95,24 +97,24 @@ function metodos(metodo, urlRequest, res){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
-            
+
+
 
         }else if(metodo == 'POST'){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
+
         }else if(metodo == 'DELETE'){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
+
         }else{
             res.writeHead(404, {'Content-Type': 'text/plain'});
             res.end('\t\t\t\t\t\tProtocolo RESTFULL no valido\n');
         }
-        
+
 
     }else if (urlRequest.indexOf("/luci/callinprogress/phone") !=-1) {
 
@@ -120,7 +122,7 @@ function metodos(metodo, urlRequest, res){
 
             /*request('http://69.195.197.50:4045/callInProcess?do={"ag":"'+numeroAgencia+'","mc":"'+numerMiniCall+'","phone":"'+parametros.numero+'"}', function (error, response, body) {
 
-                
+
               if (!error) {
 
                 var respuesta = JSON.stringify(eval("(" + body + ")"));
@@ -139,20 +141,20 @@ function metodos(metodo, urlRequest, res){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"inprogress\": \"T\", \"extension\":\"2001343455\"}');
 
-            
-            
+
+
 
         }else{
             res.writeHead(404, {'Content-Type': 'text/plain'});
             res.end('\t\t\t\t\t\tProtocolo RESTFULL no valido\n');
-        }       
+        }
 
     }else if (urlRequest.indexOf("/luci/setFolio") !=-1) {
         if (metodo == 'POST') {
 
             /*request('http://69.195.197.50:4045/callInProcess?do={"ag":"'+numeroAgencia+'","mc":"'+numerMiniCall+'","phone":"'+parametros.numero+'"}', function (error, response, body) {
 
-                
+
               if (!error) {
 
                 var respuesta = JSON.stringify(eval("(" + body + ")"));
@@ -171,13 +173,13 @@ function metodos(metodo, urlRequest, res){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55###########\"}');
 
-            
-            
+
+
 
         }else{
             res.writeHead(404, {'Content-Type': 'text/plain'});
             res.end('\t\t\t\t\t\tProtocolo RESTFULL no valido\n');
-        }  
+        }
 
     }else if (urlRequest.indexOf("/luci/whitelist/trusted/phone") !=-1) {
 
@@ -185,7 +187,7 @@ function metodos(metodo, urlRequest, res){
 
             /*request('http://69.195.197.50:4045/callInProcess?do={"ag":"'+numeroAgencia+'","mc":"'+numerMiniCall+'","phone":"'+parametros.numero+'"}', function (error, response, body) {
 
-                
+
               if (!error) {
 
                 var respuesta = JSON.stringify(eval("(" + body + ")"));
@@ -204,24 +206,24 @@ function metodos(metodo, urlRequest, res){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
-            
+
+
 
         }else if(metodo == 'POST'){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
+
         }else if(metodo == 'DELETE'){
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end('{\"response\": \"200\",\"description\": \"Success\", \"phone\":\"55############\"}');
 
-            
+
         }else{
             res.writeHead(404, {'Content-Type': 'text/plain'});
             res.end('\t\t\t\t\t\tProtocolo RESTFULL no valido\n');
         }
-        
+
     }else{
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('\t\t\t\t\t\tMetodo NO valido dentro del API.\n');
