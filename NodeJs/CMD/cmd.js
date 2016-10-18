@@ -32,19 +32,13 @@ http.createServer(function(req, res) {
     console.log('------------------------------');
 
     cmd.get(
-      'iconv -f UTF-8 -t UTF-8 ctc_test.csv > ctc_test_SALIDA.csv ',
+      'ls /home/ -l',
       function(data, err) {
 
         console.log('...' + data + '...')
 
         console.log('...' + err + '...')
-        cmd.get(
-          'wc -l ctc_test.csv && wc -l ctc_test_SALIDA.csv',
-          function(data) {
 
-            console.log('...' + data + '...')
-
-          });
 
       });
 
