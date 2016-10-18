@@ -1,0 +1,7 @@
+{
+  "name": "Documentacion de API para STO",
+  "version": "0.1.0",
+  "description": "Se plantean los 3 metodos de interaccion para captura de información SEL.",
+  "title": "API STO",
+  "url" : "http://69.195.197.52:8100/crm/"
+}
