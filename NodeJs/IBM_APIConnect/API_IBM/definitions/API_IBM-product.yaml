@@ -1,0 +1,25 @@
+product: '1.0.0'
+
+info:
+  name: api_ibm
+  title: API_IBM
+  version: 1.0.0
+
+apis:
+  'api_ibm':
+    $ref: API_IBM.yaml
+
+visibility:
+  view:
+    type: public
+  subscribe:
+    type: authenticated
+
+plans:
+  default:
+    title: Default Plan
+    description: Default Plan
+    approval: false
+    rate-limit:
+      value: 100/hour
+      hard-limit: false
