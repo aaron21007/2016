@@ -10,19 +10,15 @@ arr=($SEND_CURL)
 i=0
 for var in "${arr[@]}"
 do
-  if [[ $var == *"FRONTAPPID="* ]]; then    
-  	#FRONTAPPID=$(echo "$var" | sed 's/.*FRONTAPPID=\(.*\);.*/\1/' | sed 's/!/"'"'"'!'"'"'"/g')
+  if [[ $var == *"FRONTAPPID="* ]]; then
     FRONTAPPID=$(echo "$var" | sed 's/.*FRONTAPPID=\(.*\);.*/\1/')
-  	#echo $var
-  	#echo $FRONTAPPID
+
   fi
-  if [[ $var == *"id=\"javax.faces.ViewState\""* ]]; then		
+  if [[ $var == *"id=\"javax.faces.ViewState\""* ]]; then
   	VIEWSTATE=$(echo ${arr[i+1]} | sed 's/.*"\(.*\)".*/\1/')
-  	#echo ${arr[i+1]}
-  	#echo $VIEWSTATE
+
   fi
   ((i++))
 done
 
 ($CURL -X POST -H "Cookie: primefaces.download=true;FRONTAPPID=$FRONTAPPID" -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'FORM_planes=FORM_planes&FORM_planes:BTN_planPublico1=BTN_planPublico1&javax.faces.ViewState='$VIEWSTATE'' "https://sns.ift.org.mx:8081/sns-frontend/planes-numeracion/descarga-publica.xhtml") > test.zip
-#(curl -X POST -H "Cookie: primefaces.download=true;FRONTAPPID=nUdXn8SiLm4Obth_P-ztoohXbtlZjBBJHgRxXtr7LadhB5QKkoE2!-1491932514!-854719358" -H "Content-Type: application/x-www-form-urlencoded" -H "Cache-Control: no-cache" -d 'FORM_planes=FORM_planes&FORM_planes:BTN_planPublico1=BTN_planPublico1&javax.faces.ViewState=1154810872109737533:-9043101773099615246' "https://sns.ift.org.mx:8081/sns-frontend/planes-numeracion/descarga-publica.xhtml")
