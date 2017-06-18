@@ -1,0 +1,23 @@
+<html>
+
+<head>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+</head>
+
+<body>
+    <h1> Pagina Web</h1>
+
+    <div id="chat">
+    </div>
+
+    </br>
+    <form onsubmit="return addMessage(this)">
+        <input type="text" id="username" placeholder="Nombre">
+        <input type="text" id="texto" placeholder="Di algo ...">
+        <input type="submit" value="Send">
+    </form>
+
+</body>
+
+</html>

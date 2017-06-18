@@ -1,0 +1,728 @@
+!function(jQuery, module) {
+  /**
+   * @param {string} p
+   * @param {string} parent
+   * @return {?}
+   */
+  function require(p, parent) {
+    var path;
+    var mod;
+    if ("." != p[0] && "/" != p[0]) {
+      return jQuery(p);
+    }
+    if (parent = parent || "root", path = require.resolve(p), !path && /\.json$/i.test(p)) {
+      return jQuery("./" + require.basename(p));
+    }
+    if (mod = require.cache[path], !mod) {
+      try {
+        return jQuery(p);
+      } catch (ex) {
+        throw Error('failed to require "' + p + '" from ' + parent + "\n" + ex.message + "\n" + ex.stack);
+      }
+    }
+    return mod.exports || (mod.exports = {}, mod.call(mod.exports, mod, mod.exports, require.relative(path))), mod.exports;
+  }
+  require.cache = {};
+  require.basename = jQuery("path").basename;
+  /**
+   * @param {string} val
+   * @return {?}
+   */
+  require.resolve = function(val) {
+    var args;
+    var argName;
+    var resolved;
+    if ("." != val[0]) {
+      return jQuery.resolve(val);
+    }
+    /** @type {Array} */
+    args = [val, val + ".js", val + "/index.js", val + ".json", val + "/index.json"];
+    /** @type {number} */
+    argName = 0;
+    for (;resolved = args[argName];argName++) {
+      if (require.cache[resolved]) {
+        return resolved;
+      }
+    }
+  };
+  /**
+   * @param {string} path
+   * @param {Object} fn
+   * @return {undefined}
+   */
+  require.register = function(path, fn) {
+    /** @type {Object} */
+    require.cache[path] = fn;
+  };
+  /**
+   * @param {string} parent
+   * @return {?}
+   */
+  require.relative = function(parent) {
+    /**
+     * @param {string} range
+     * @return {?}
+     */
+    function fn(range) {
+      var curr;
+      var parts;
+      var i;
+      var subLn;
+      var part;
+      if ("." != range[0]) {
+        return require(range);
+      }
+      curr = parent.split("/");
+      parts = range.split("/");
+      curr.pop();
+      /** @type {number} */
+      i = 0;
+      subLn = parts.length;
+      for (;subLn > i;i += 1) {
+        part = parts[i];
+        if (".." == part) {
+          curr.pop();
+        } else {
+          if ("." != part) {
+            curr.push(part);
+          }
+        }
+      }
+      return require(curr.join("/"), parent);
+    }
+    return fn.resolve = require.resolve, fn.cache = require.cache, fn;
+  };
+  require.register("./plugins/pfscdrPOST.js", function(context, dataAndEvents, require) {
+    /**
+     * @param {string} p
+     * @param {Object} path
+     * @param {string} str
+     * @param {?} o
+     * @param {string} name
+     * @param {string} text
+     * @param {string} callback
+     * @param {number} block
+     * @param {string} element
+     * @param {number} value
+     * @param {number} i
+     * @return {undefined}
+     */
+    function compile(p, path, str, o, name, text, callback, block, element, value, i) {
+      /** @type {string} */
+      var ext = "bl:" + text;
+      p.exists(ext, function(dataAndEvents, reply) {
+        var o;
+        var highest;
+        var url;
+        if (dataAndEvents) {
+          console.log("[" + str + "] [REDIS] [ERROR] [BL] " + dataAndEvents + "\n");
+        }
+        console.log("[" + str + "] [REDIS] bl exists?: " + reply);
+        if (reply) {
+          console.log("[" + str + "] [BL] phone: " + text + " already exists:" + reply);
+          o = path.query("UPDATE cdrs_currentDay SET banned=1 WHERE id=" + name, function(dataAndEvents) {
+            if (dataAndEvents) {
+              console.log(o.sql);
+              console.log("[MYSQL] [UPDATE] [ERROR] " + dataAndEvents + "\n");
+            } else {
+              console.log("[" + str + "] [MySQL] [UPDATE] Call Banned:" + text + "|CDRid:" + name);
+            }
+          });
+          o = path.query("UPDATE cdrs_currentDay SET block_dnis=1 WHERE id=" + name, function(dataAndEvents, info) {
+            if (dataAndEvents) {
+              console.log(o.sql);
+              console.log("[MYSQL] [UPDATE] [ERROR] " + dataAndEvents + "\n");
+            } else {
+              console.log("[" + str + "] [MySQL] [UPDATE] This call block DNIS:" + text + "|CDRid:" + name + "|AffectedRows:" + info.affectedRows);
+            }
+            console.log("[" + str + "] [MYSQL] [CLOSE] Connection exit 31");
+            path.end();
+          });
+        } else {
+          console.log("[" + str + "] [BL] phone: " + text + " NOT exists:" + reply + "| lets to insert");
+          /** @type {number} */
+          highest = block;
+          /** @type {string} */
+          url = "bl:" + text + " sdate " + block + " edate " + element + " idate " + highest + " btype " + callback;
+          console.log("[" + str + "] [REDIS] [BL] [INSERT] " + url);
+          p.hmset("bl:" + text, "sdate", block, "edate", element, "idate", highest, "btype", callback, function(dataAndEvents, reply) {
+            if (dataAndEvents) {
+              console.log("[" + str + "] [REDIS] [ERROR] [BL] " + dataAndEvents + "\n");
+            }
+            console.log("[" + str + "] [REDIS] [BL] [INSERT]: " + text + " blocked from" + PHONE_ATTEMPS + " | redisresp:" + reply);
+          });
+          if (value > 0) {
+            p.expire("bl:" + text, value, function(dataAndEvents) {
+              if (dataAndEvents) {
+                console.log("[REDIS] [ERROR] [BL] " + dataAndEvents + "\n");
+              }
+              console.log("[" + str + "] [REDIS] [BL] [EXPIRE] [BL]: " + text + " expire on :" + value + " seconds.");
+            });
+          }
+          if (i > 0) {
+            p.expire("blcounter:" + text + ":" + i, value, function(dataAndEvents) {
+              if (dataAndEvents) {
+                console.log("[REDIS] [ERROR] [BLCOUNTER] " + dataAndEvents + "\n");
+              }
+              console.log("[" + str + "] [REDIS] [BL] [EXPIRE] [BLCOUNTER]: " + text + ":" + i + " expire on :" + value + " seconds.");
+            });
+          }
+          o = path.query("UPDATE cdrs_currentDay SET block_dnis=1 WHERE id=" + name, function(dataAndEvents, info) {
+            if (dataAndEvents) {
+              console.log(o.sql);
+              console.log("[MYSQL] [UPDATE] [ERROR] " + dataAndEvents + "\n");
+            } else {
+              console.log("[" + str + "] [MySQL] [UPDATE] This call block DNIS:" + text + "|CDRid:" + name + "|AffectedRows:" + info.affectedRows);
+            }
+            console.log("[" + str + "] [MYSQL] [CLOSE] Connection exit 32");
+            path.end();
+          });
+        }
+      });
+    }
+    /**
+     * @param {Document} r
+     * @param {Object} res
+     * @param {string} instance
+     * @return {undefined}
+     */
+    context.exports.run = function(r, res, instance) {
+      /** @type {string} */
+      var days = "";
+      /** @type {string} */
+      var optsData = "";
+      /** @type {string} */
+      var className = "";
+      var paths = process.hrtime();
+      var tree = paths[0] + "" + paths[1];
+      /** @type {string} */
+      var label = "";
+      var driver = require("mysql");
+      var config = driver.createConnection({
+        host : "localhost",
+        user : "pbsnode",
+        password : "pB5N0d#-",
+        database : "pbs"
+      });
+      var synchronize = require("xml2js").parseString;
+      synchronize("<cdrs>" + r.body + "</cdrs>", function(dataAndEvents, pair) {
+        var val;
+        var fs;
+        var id;
+        var elem;
+        var re;
+        var part;
+        var t;
+        var u;
+        var v;
+        var value;
+        var sb;
+        var n;
+        var query;
+        var res;
+        var expires;
+        var C;
+        var str;
+        var response;
+        /** @type {Array.<string>} */
+        var varwwscoreCDBfreeswitch = ("" + pair.cdrs.cdr[0].variables[0].uuid).split("%40");
+        if (console.log("[" + tree + "] [CALLID]: " + varwwscoreCDBfreeswitch[0]), pair.cdrs.cdr[0].variables[0].blocked ? (label = "" + pair.cdrs.cdr[0].variables[0].blocked, console.log("[" + tree + "] [CALL BLOCKED] cause: " + label)) : label = "", val = unescape(pair.cdrs.cdr[0].variables[0].tipificacion), "" + val == "no data" && (val = 9E4), console.log("[" + tree + "] [TIPIFICACION] ID: " + val), fs = require("fs"), fs.writeFile("/var/wws/core/CDB/freeswitch/" + varwwscoreCDBfreeswitch[0] +
+        ".xml", r.body, function(reply) {
+          if (reply) {
+            console.log("[" + tree + "] [XML CDR] [ERROR] file NOT dumped!" + reply);
+          }
+          console.log("[" + tree + "] [XML CDR] file dumped! | file name:" + varwwscoreCDBfreeswitch[0]);
+        }), console.log("[" + tree + "] [CDR] [FLOW] " + pair.cdrs.cdr[0].variables[0].direction), "outbound" == pair.cdrs.cdr[0].variables[0].direction) {
+          return console.log("[" + tree + "] [NORMAL EXIT] "), 0;
+        }
+        if (config.connect(function(dataAndEvents) {
+          if (dataAndEvents) {
+            console.log("[" + tree + "] [MYSQL] [CONNECTION] Database is OFFline");
+            console.log("[" + tree + "] [ERROR] [MYSQL] " + dataAndEvents + "\n");
+          } else {
+            console.log("[" + tree + "] [MYSQL] [CONNECTION] Database is ONline");
+          }
+        }), pair.cdrs.cdr[0].app_log) {
+          for (id in pair.cdrs.cdr[0].app_log[0].application) {
+            /** @type {string} */
+            elem = "" + pair.cdrs.cdr[0].app_log[0].application[id].$.app_name;
+            if ("record_session" === elem) {
+              optsData = pair.cdrs.cdr[0].app_log[0].application[id].$.app_data;
+              className = pair.cdrs.cdr[0].app_log[0].application[id].$.app_stamp;
+            }
+          }
+        } else {
+          /** @type {string} */
+          optsData = "empty";
+          /** @type {string} */
+          className = "empty";
+        }
+        re = pair.cdrs.cdr[0].variables[0].sip_req_user;
+        /** @type {string} */
+        part = ("" + re).slice(-10);
+        /** @type {string} */
+        t = ("" + re).substring(0, 2);
+        /** @type {string} */
+        u = ("" + re).substring(2, 4);
+        /** @type {string} */
+        v = ("" + re).substring(4, 6);
+        console.log("[" + tree + "] [DNIS] " + re + " Len: " + ("" + re).slice(-10));
+        console.log("[" + tree + "] [DNIS] |" + re + "|Agencia:" + t + "|Minicall:" + u + "|Producto:" + v + "|Cliente:" + part);
+        value = {
+          core_uuid : pair.cdrs.cdr[0].$["core-uuid"],
+          flags : pair.cdrs.cdr[0].channel_data[0].flags,
+          caps : pair.cdrs.cdr[0].channel_data[0].caps,
+          uuid : pair.cdrs.cdr[0].variables[0].uuid,
+          session_id : pair.cdrs.cdr[0].variables[0].session_id,
+          sip_from_user : pair.cdrs.cdr[0].variables[0].sip_from_user,
+          sip_from_uri : unescape(pair.cdrs.cdr[0].variables[0].sip_from_uri),
+          ep_codec_string : unescape(pair.cdrs.cdr[0].variables[0].ep_codec_string),
+          sip_local_network_addr : pair.cdrs.cdr[0].variables[0].sip_local_network_addr,
+          sip_network_ip : pair.cdrs.cdr[0].variables[0].sip_network_ip,
+          sip_via_protocol : pair.cdrs.cdr[0].variables[0].sip_via_protocol,
+          sip_invite_record_route : unescape(pair.cdrs.cdr[0].variables[0].sip_invite_record_route),
+          sip_req_user : pair.cdrs.cdr[0].variables[0].sip_req_user,
+          sip_req_uri : unescape(pair.cdrs.cdr[0].variables[0].sip_req_uri),
+          sip_to_user : pair.cdrs.cdr[0].variables[0].sip_to_user,
+          sip_to_uri : unescape(pair.cdrs.cdr[0].variables[0].sip_to_uri),
+          presence_id : unescape(pair.cdrs.cdr[0].variables[0].presence_id),
+          local_media_ip : unescape(pair.cdrs.cdr[0].variables[0].local_media_ip),
+          rtp_use_codec_name : pair.cdrs.cdr[0].variables[0].rtp_use_codec_name,
+          rtp_use_codec_rate : pair.cdrs.cdr[0].variables[0].rtp_use_codec_rate,
+          rtp_use_codec_ptime : pair.cdrs.cdr[0].variables[0].rtp_use_codec_ptime,
+          rtp_use_codec_channels : pair.cdrs.cdr[0].variables[0].rtp_use_codec_channels,
+          lcr_carrier : pair.cdrs.cdr[0].variables[0].lcr_carrier,
+          lcr_rate : pair.cdrs.cdr[0].variables[0].lcr_rate,
+          endpoint_disposition : unescape(pair.cdrs.cdr[0].variables[0].endpoint_disposition),
+          last_bridge_hangup_cause : pair.cdrs.cdr[0].variables[0].last_bridge_hangup_cause,
+          ivr_menu_status : pair.cdrs.cdr[0].variables[0].ivr_menu_status,
+          sip_contact_host : pair.cdrs.cdr[0].variables[0].sip_contact_host,
+          sip_term_status : pair.cdrs.cdr[0].variables[0].sip_term_status,
+          sip_from_display : unescape(pair.cdrs.cdr[0].variables[0].sip_from_display),
+          sip_full_from : unescape(pair.cdrs.cdr[0].variables[0].sip_full_from),
+          sip_user_agent : unescape(pair.cdrs.cdr[0].variables[0].sip_user_agent),
+          sip_via_host : pair.cdrs.cdr[0].variables[0].sip_via_host,
+          tipificacion : pair.cdrs.cdr[0].variables[0].tipificacion,
+          digits_dialed : pair.cdrs.cdr[0].variables[0].digits_dialed,
+          start_stamp : unescape(pair.cdrs.cdr[0].variables[0].start_stamp),
+          answer_stamp : unescape(pair.cdrs.cdr[0].variables[0].answer_stamp),
+          bridge_stamp : unescape(pair.cdrs.cdr[0].variables[0].bridge_stamp),
+          end_stamp : unescape(pair.cdrs.cdr[0].variables[0].end_stamp),
+          duration : pair.cdrs.cdr[0].variables[0].duration,
+          billsec : pair.cdrs.cdr[0].variables[0].billsec,
+          DIALSTATUS : pair.cdrs.cdr[0].variables[0].DIALSTATUS,
+          proto_specific_hangup_cause : unescape(pair.cdrs.cdr[0].variables[0].proto_specific_hangup_cause),
+          sip_hangup_disposition : pair.cdrs.cdr[0].variables[0].sip_hangup_disposition,
+          sip_invite_failure_status : pair.cdrs.cdr[0].variables[0].sip_invite_failure_status,
+          sip_invite_failure_phrase : unescape(pair.cdrs.cdr[0].variables[0].sip_invite_failure_phrase),
+          hangup_cause : pair.cdrs.cdr[0].variables[0].hangup_cause,
+          hangup_cause_q850 : pair.cdrs.cdr[0].variables[0].hangup_cause_q850,
+          profile_start_stamp : unescape(pair.cdrs.cdr[0].variables[0].profile_start_stamp),
+          prefix_sant : pair.cdrs.cdr[0].variables[0].prefix_sant,
+          prefix_nxt : pair.cdrs.cdr[0].variables[0].prefix_nxt,
+          app_data : optsData,
+          app_stamp : className,
+          flujo : pair.cdrs.cdr[0].variables[0].flujo,
+          uuid_org : pair.cdrs.cdr[0].variables[0].uuid_org,
+          status_sel : pair.cdrs.cdr[0].variables[0].status_sel,
+          folio_int : pair.cdrs.cdr[0].variables[0].folio_int,
+          folio_sel : pair.cdrs.cdr[0].variables[0].folio_sel,
+          phone : part,
+          cventas : pair.cdrs.cdr[0].variables[0].cventas
+        };
+        if (label) {
+          value.callblocked = label;
+        }
+        /** @type {string} */
+        sb = "";
+        /** @type {string} */
+        n = "";
+        query = config.query("INSERT INTO cdrs_currentDay SET ?", value, function(dataAndEvents, result) {
+          if (dataAndEvents) {
+            console.log(query.sql);
+            console.log("[MYSQL] [ERROR] " + dataAndEvents + "\n");
+          } else {
+            n = result.insertId;
+            console.log("[" + tree + "] [MySQL] [INSERT] [CDR] Inserted: " + result.affectedRows + " rows | callid:" + varwwscoreCDBfreeswitch[0] + " | record id:" + n);
+          }
+        });
+        /** @type {string} */
+        res = "";
+        /** @type {string} */
+        expires = "";
+        if ("1" == val) {
+          /** @type {string} */
+          res = "t1";
+        }
+        if ("2" == val) {
+          /** @type {string} */
+          res = "t2";
+        }
+        if ("3" == val) {
+          /** @type {string} */
+          res = "t3";
+        }
+        if ("4" == val) {
+          /** @type {string} */
+          res = "t4";
+        }
+        if ("5" == val) {
+          /** @type {string} */
+          res = "t5";
+        }
+        if ("no data" == val) {
+          /** @type {string} */
+          res = "notip";
+        }
+        if ("10000" == val) {
+          /** @type {string} */
+          res = "t10000";
+        }
+        if ("11000" == val) {
+          /** @type {string} */
+          res = "t11000";
+        }
+        if ("21000" == val) {
+          /** @type {string} */
+          res = "t21000";
+        }
+        if ("22000" == val) {
+          /** @type {string} */
+          res = "t22000";
+        }
+        if ("23100" == val) {
+          /** @type {string} */
+          res = "t23100";
+        }
+        if ("23200" == val) {
+          /** @type {string} */
+          res = "t23200";
+        }
+        if ("23210" == val) {
+          /** @type {string} */
+          res = "t23210";
+        }
+        if ("23220" == val) {
+          /** @type {string} */
+          res = "t23220";
+        }
+        if ("23300" == val) {
+          /** @type {string} */
+          res = "t23300";
+        }
+        if ("23400" == val) {
+          /** @type {string} */
+          res = "t23400";
+        }
+        if ("90000" == val) {
+          /** @type {string} */
+          res = "notip";
+        }
+        if ("undefined" == val) {
+          /** @type {string} */
+          res = "notip";
+        }
+        if (label) {
+          /** @type {string} */
+          expires = "callsblocked = callsblocked+1,";
+        }
+        /** @type {string} */
+        C = " INSERT INTO SipExtLog  (username,lastcall,calls," + res + ")  VALUES  ('" + pair.cdrs.cdr[0].variables[0].sip_from_user + "', '" + unescape(pair.cdrs.cdr[0].variables[0].start_stamp) + "', 1,1)  ON DUPLICATE KEY UPDATE  calls = calls+1, " + expires + " " + res + " = " + res + "+1 ";
+        if (val > 0) {
+          /** @type {string} */
+          str = " SELECT description,toBlock,toBlockDirectly,toBlock4DAttemps,toBlock4MAttemps,BlockDays,BlockSecs  FROM clasification WHERE tipificacion=" + val;
+          response = config.query(str, function(reply, suites) {
+            /**
+             * @param {string} node
+             * @param {string} req
+             * @param {string} text
+             * @param {string} fmt
+             * @param {number} data
+             * @param {Function} cb
+             * @return {undefined}
+             */
+            function parse(node, req, text, fmt, data, cb) {
+              /** @type {string} */
+              var name = "";
+              /** @type {string} */
+              var j = "N";
+              /** @type {string} */
+              var msg = "";
+              if ("DAILY" == req) {
+                /** @type {string} */
+                name = "bldcounter:" + text + ":" + fmt;
+                /** @type {string} */
+                j = "Y";
+              } else {
+                if ("MONTHLY" == req) {
+                  /** @type {string} */
+                  name = "blmcounter:" + text + ":" + fmt;
+                  /** @type {string} */
+                  j = "Y";
+                } else {
+                  /** @type {string} */
+                  name = "blycounter:" + text + ":" + fmt;
+                }
+              }
+              instance.incr(name, function(dataAndEvents, type) {
+                /** @type {string} */
+                msg = type;
+                if (dataAndEvents) {
+                  console.log("[" + node + "] [REDIS] [ERROR] " + dataAndEvents + "\n");
+                }
+                console.log("[" + node + "] [REDIS] [COUNTER] " + name + " | Attemps:" + msg);
+                console.log("[" + node + "] [REDIS] [EXPIRE] " + name + " " + data);
+                if ("Y" == j) {
+                  instance.expire(name, data, function(dataAndEvents) {
+                    if (dataAndEvents) {
+                      console.log("[REDIS] [BLCOUNTER] [EXPIRE] [ERROR]" + dataAndEvents + "\n");
+                    }
+                    console.log("[" + node + "] [REDIS] [BLCOUNTER] [EXPIRE] " + text + ":" + fmt + " expire on :" + data + " seconds.");
+                    cb(msg);
+                  });
+                } else {
+                  cb(msg);
+                }
+              });
+            }
+            var results;
+            var waitsForFunc;
+            var expires;
+            var activeClassName;
+            var last;
+            var udataCur;
+            var pdataCur;
+            var pdataOld;
+            var xml;
+            var yDelta;
+            var inputLength;
+            var z;
+            var root;
+            var delta;
+            var seconds;
+            var restoreScript;
+            var data;
+            var camelKey;
+            var memory;
+            var rvar;
+            var modId;
+            if (reply) {
+              console.log(response.sql);
+              console.log("[" + tree + "] [ERROR] [MYSQL] Tipificacion NO encontrada | Err:" + reply);
+              console.log("[" + tree + "] [MYSQL] [CLOSE] Connection exit 33");
+              config.end();
+            } else {
+              if (suites.length) {
+                TDesc = suites[0].description;
+                TBlock = suites[0].toBlock;
+                TBlockDir = suites[0].toBlockDirectly;
+                TBlock4DAt = suites[0].toBlock4DAttemps;
+                TBlock4MAt = suites[0].toBlock4MAttemps;
+                days = suites[0].BlockDays;
+                TBsecs = suites[0].BlockSecs;
+                console.log("[" + tree + "] [CORE] Tip:" + val + "|Desc:" + TDesc + " |Bloquea?:" + TBlock + "|Directo?:" + TBlockDir + "|Daily Attemps:" + TBlock4DAt + "|Monthly Attemps:" + TBlock4MAt + "|x " + days + " Dias|x " + TBsecs + " Secs|Apply if Billsec: " + pair.cdrs.cdr[0].variables[0].billsec + " >= 15");
+                if (1 == TBlock && pair.cdrs.cdr[0].variables[0].billsec >= 15) {
+                  require("date-utils");
+                  /** @type {string} */
+                  results = "";
+                  /** @type {string} */
+                  waitsForFunc = "";
+                  /** @type {string} */
+                  expires = "";
+                  /** @type {string} */
+                  activeClassName = "";
+                  /** @type {string} */
+                  last = "";
+                  /** @type {number} */
+                  udataCur = 0;
+                  /** @type {Date} */
+                  results = new Date;
+                  /** @type {string} */
+                  BType = val >= 1 && 9E4 > val ? "tipi" : "dyn";
+                  if (1 == TBlockDir) {
+                    parse(tree, "YEARLY", part, val, 0, function() {
+                    });
+                    if (days > 0) {
+                      console.log("[" + tree + "] [CORE] [YEARLY] => Lets2Block");
+                      waitsForFunc = results.toFormat("YYYY/MM/DD HH24:MI:SS");
+                      waitsForFunc = results.toFormat("YYYY/MM/DD");
+                      expires = results.add({
+                        days : days
+                      });
+                      activeClassName = expires.toFormat("YYYY/MM/DD");
+                      compile(instance, config, tree, sb, n, part, BType, waitsForFunc, activeClassName, udataCur, last);
+                    } else {
+                      if (TBsecs > 0) {
+                        console.log("[" + tree + "] [CORE] [YEARLY] => Lets2Block");
+                        waitsForFunc = results.toFormat("YYYY/MM/DD HH24:MI:SS");
+                        expires = results.add({
+                          seconds : TBsecs
+                        });
+                        activeClassName = expires.toFormat("YYYY/MM/DD HH24:MI:SS");
+                        udataCur = TBsecs;
+                        /** @type {(number|string)} */
+                        last = val;
+                        compile(instance, config, tree, sb, n, part, BType, waitsForFunc, activeClassName, udataCur, last);
+                      }
+                    }
+                  } else {
+                    /** @type {number} */
+                    pdataCur = 86400;
+                    /** @type {number} */
+                    pdataOld = 2678400;
+                    if (TBlock4DAt > 0 && TBlock4MAt > 0) {
+                      xml = tree;
+                      yDelta = TBlock4DAt;
+                      inputLength = TBlock4MAt;
+                      /** @type {string} */
+                      z = BType;
+                      root = part;
+                      delta = days;
+                      seconds = TBsecs;
+                      /** @type {string} */
+                      restoreScript = BType;
+                      /** @type {(number|string)} */
+                      data = val;
+                      /** @type {number} */
+                      camelKey = pdataCur;
+                      /** @type {number} */
+                      memory = pdataOld;
+                      rvar = sb;
+                      modId = n;
+                      parse(xml, "DAILY", part, val, pdataCur, function(xDelta) {
+                        parse(xml, "MONTHLY", part, val, pdataOld, function(index) {
+                          var waitsForFunc;
+                          var d;
+                          var activeClassName;
+                          var udataCur;
+                          var doneResults;
+                          if (xDelta >= yDelta) {
+                            console.log("[" + xml + "] [CORE] [DAILY] Attemps:" + xDelta + " gt Limit:" + yDelta + " => Lets2Block");
+                            waitsForFunc = results.toFormat("YYYY/MM/DD HH24:MI:SS");
+                            d = results.add({
+                              seconds : seconds
+                            });
+                            activeClassName = d.toFormat("YYYY/MM/DD HH24:MI:SS");
+                            udataCur = seconds;
+                            doneResults = data;
+                            compile(instance, config, xml, rvar, modId, root, restoreScript, waitsForFunc, activeClassName, udataCur, doneResults);
+                          } else {
+                            if (index >= inputLength) {
+                              console.log("[" + xml + "] [CORE] [MONTHLY] Attemps:" + index + " gt Limit:" + inputLength + " => Lets2Block");
+                              waitsForFunc = results.toFormat("YYYY/MM/DD");
+                              d = results.add({
+                                days : delta
+                              });
+                              activeClassName = d.toFormat("YYYY/MM/DD");
+                              compile(instance, config, xml, rvar, modId, root, restoreScript, waitsForFunc, activeClassName, udataCur, doneResults);
+                            } else {
+                              console.log("[" + xml + "] [CORE] [DAILY] Attemps:" + xDelta + " lt Limit:" + yDelta + " => Nothing2Do");
+                              console.log("[" + xml + "] [CORE] [MONTHLY] Attemps:" + index + " lt Limit:" + inputLength + " => Nothing2Do");
+                              console.log("[" + xml + "] [MYSQL] [CLOSE] Connection exit 18");
+                              config.end();
+                            }
+                          }
+                        });
+                      });
+                    } else {
+                      if (TBlock4DAt > 0) {
+                        xml = tree;
+                        yDelta = TBlock4DAt;
+                        /** @type {string} */
+                        z = BType;
+                        root = part;
+                        delta = days;
+                        seconds = TBsecs;
+                        /** @type {string} */
+                        restoreScript = BType;
+                        /** @type {(number|string)} */
+                        data = val;
+                        /** @type {number} */
+                        camelKey = pdataCur;
+                        rvar = sb;
+                        modId = n;
+                        parse(xml, "DAILY", root, data, camelKey, function(xDelta) {
+                          var waitsForFunc;
+                          var d;
+                          var activeClassName;
+                          if (xDelta >= yDelta) {
+                            console.log("[" + tree + "] [CORE] [DAILY] Attemps:" + xDelta + " gt Limit:" + yDelta + " => Lets2Block");
+                            waitsForFunc = results.toFormat("YYYY/MM/DD HH24:MI:SS");
+                            d = results.add({
+                              seconds : seconds
+                            });
+                            d = results.add({
+                              days : delta
+                            });
+                            activeClassName = d.toFormat("YYYY/MM/DD HH24:MI:SS");
+                            udataCur = delta > 0 ? 24 * delta * 60 * 60 : seconds;
+                            last = data;
+                            compile(instance, config, xml, rvar, modId, root, restoreScript, waitsForFunc, activeClassName, udataCur, last);
+                          } else {
+                            console.log("[" + tree + "] [CORE] [DAILY] Attemps:" + xDelta + " lt Limit:" + LIMIT + " => Nothing2Do");
+                            console.log("[" + tree + "] [MYSQL] [CLOSE] Connection exit 10");
+                            config.end();
+                          }
+                        });
+                      } else {
+                        if (TBlock4MAt > 0) {
+                          xml = tree;
+                          yDelta = TBlock4DAt;
+                          /** @type {string} */
+                          z = BType;
+                          root = part;
+                          delta = days;
+                          seconds = TBsecs;
+                          /** @type {string} */
+                          restoreScript = BType;
+                          /** @type {(number|string)} */
+                          data = val;
+                          /** @type {number} */
+                          memory = pdataOld;
+                          rvar = sb;
+                          modId = n;
+                          parse(xml, "MONTHLY", root, data, memory, function(dataAndEvents) {
+                            var waitsForFunc;
+                            var d;
+                            var activeClassName;
+                            if (dataAndEvents >= TBlock4MAt) {
+                              console.log("[" + xml + "] [CORE] [MONTHLY] Attemps:" + dataAndEvents + " gt Limit:" + yDelta + " => Lets2Block");
+                              waitsForFunc = results.toFormat("YYYY/MM/DD");
+                              d = results.add({
+                                days : delta
+                              });
+                              activeClassName = d.toFormat("YYYY/MM/DD");
+                              compile(instance, config, xml, rvar, modId, root, restoreScript, waitsForFunc, activeClassName, udataCur, last);
+                            } else {
+                              console.log("[" + tree + "] [CORE] [MONTHLY] Attemps:" + dataAndEvents + " lt Limit:" + TBlock4MAt + " => Nothing2Do");
+                              console.log("[" + tree + "] [MYSQL] [CLOSE] Connection exit 11");
+                              config.end();
+                            }
+                          });
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  console.log("[" + tree + "] La Tipificacion:" + val + " No bloquea en el BL.");
+                  console.log("[" + tree + "] [MYSQL] [CLOSE] Connection exit 15");
+                  config.end();
+                }
+              } else {
+                console.log("[" + tree + "] Tipificacion no encontrada: |" + val + "|");
+                console.log("[" + tree + "] [MYSQL] [CLOSE] Connection exit 02");
+                config.end();
+              }
+            }
+          });
+        } else {
+          console.log("[" + tree + "] Tipificacion invalida: |" + val + "|");
+          console.log("[" + tree + "] [MYSQL] [CLOSE] Connection EMERGENCY exit 80");
+          config.end();
+        }
+      });
+      res.send("OK");
+    };
+  });
+  module.exports = require("./plugins/pfscdrPOST.js");
+}(require, module);
