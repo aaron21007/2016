@@ -8,12 +8,16 @@ from impacket.ImpactDecoder import EthDecoder
 dev  = "wlp3s0"
 filter = "ip"
 decoder = EthDecoder()
+file = open('Sniffer.pcap', 'w')
+
 
 def handle_packet(hdr, data):
     print decoder.decode(data)
+    file.write(data)
 
 def usage():
     print sys.argv[0]+" -i <dev> -f <pcap_filter>"
+    file.close()
     sys.exit(1)
 
 try:

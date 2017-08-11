@@ -1,6 +1,6 @@
 /************* Variables del entorno del servicio *************/
 const http = require('http');
-const hostname = '192.168.40.74';
+const hostname = 'localhost';
 const port = 3000;
 
 /************Variables de modulos ***************/
@@ -16,7 +16,7 @@ var url = 'mongodb://69.42.101.137:27017/mecca';
 
 var objeto= new Array();
 var filasTotales = 0;
-/***************Variables de Funciones  ***********/
+/***************Variables de Funciones  ****ls *******/
 
 var findTraffict = function(db, callback) {
     console.log("Antes de  FIND");
