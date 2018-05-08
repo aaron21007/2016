@@ -1,6 +1,11 @@
 var sox = require('sox-stream')
-var fs  = require('fs')
+var fs = require('fs')
 
-fs.createReadStream('output.wav')
-	.pipe( sox({ output: { type: 'ogg' } }) )
-	.pipe( fs.createWriteStream('song.ogg') )
+fs.createReadStream('input.ogg')
+  .pipe(sox({
+		output: {
+
+        type: 'mp3'
+    }
+  }))
+  .pipe(fs.createWriteStream('salida_convert.mp3'))

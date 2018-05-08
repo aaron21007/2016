@@ -1,0 +1,51 @@
+{
+  "name": "first",
+  "version": "1.0.0",
+  "description": "Demo of how to build an app using marko-starter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marko-js-samples/marko-starter-demo"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^4.2.0",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-prettier": "^2.1.2",
+    "prettier": "^1.5.2"
+  },
+  "dependencies": {
+    "formidable": "^1.2.1",
+    "fs": "0.0.1-security",
+    "http": "0.0.0",
+    "marko": "^4.2.4",
+    "marko-starter": "^1.0.0",
+    "mysql2": "^1.5.3",
+    "papaparse": "^4.3.7",
+    "sleep": "^5.1.1"
+  },
+  "scripts": {
+    "start": "marko-starter server",
+    "build": "NODE_ENV=production marko-starter build",
+    "serve-static": "NODE_ENV=production marko-starter serve-static",
+    "lint": "eslint src/",
+    "test": "npm run lint",
+    "prettier": "prettier src/**/*.{js,css,less} *.js --write"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "rules": {
+      "no-console": "off"
+    },
+    "env": {
+      "browser": true,
+      "node": true
+    }
+  },
+  "eslintIgnore": [
+    "*.marko.js"
+  ],
+  "private": true
+}

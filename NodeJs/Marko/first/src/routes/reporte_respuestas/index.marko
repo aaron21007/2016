@@ -1,0 +1,24 @@
+$ const mysql = require('mysql2');
+
+
+
+
+<site-layout>
+  <@title>Reportes Respuestas</@title>
+  <@content>
+    <table>
+      <tr>
+        <td>Mensaje</td>
+        <td>Respuesta</td>
+        <td>Estatus</td>
+      </tr>
+      <for(color in colors)>
+        <tr>
+          <td>Mensaje</td>
+          <td>Respuesta</td>
+          <td>${color}</td>
+        </tr>
+      </for>
+    </table>
+  </@content>
+</site-layout>
