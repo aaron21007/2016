@@ -1,0 +1,14 @@
+{
+  "name": "electron-aaron",
+  "version": "1.0.0",
+  "description": "Ejemplo de Electron",
+  "main": "main.js",
+  "scripts": {
+    "run": "electron main.js"
+  },
+  "keywords": [
+    "test"
+  ],
+  "author": "Aaron Luna",
+  "license": "ISC"
+}
