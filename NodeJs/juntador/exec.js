@@ -1,6 +1,9 @@
 var cmd=require('node-cmd');
+var sleep = require('sleep');
 var SoxCommand  = require('sox-audio')
-const PATH ='/Users/aaronluna/Documents/Audios_domer/' 
+
+
+const PATH ='/Users/aaronluna/Documents/Audios_domer_viejita/' 
     cmd.get(
         'find '+PATH+' -name "*_validation.mp3"',
         function(err, data, stderr){
@@ -14,6 +17,8 @@ const PATH ='/Users/aaronluna/Documents/Audios_domer/'
             }
 
             array_keys.forEach(element => {
+                console.log(element);
+                sleep.sleep(1)
                     cmd.get(
                         'ls '+PATH+'*'+element+'*',
                         function(err, data, stderr){
