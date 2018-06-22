@@ -21,14 +21,14 @@ var transporter = nodemailer.createTransport(smtpTransport({
     host: 'smtp.office365.com',
     port: 587,
     auth: {
-        user: 'no-reply@directo.com',
+        user: 'noreply@directo.com',
         pass: 'q^+vR8!EXV'
     }
 }))
 
 
 var mailOptions = {
-  from: 'no-reply@directo.com', // sender address
+  from: 'noreply@directo.com', // sender address
   to: 'aaron.luna@directo.com', // list of receivers
   subject: 'Hello ✔ test', // Subject line
   text: 'Hello world ✔', // plaintext body
