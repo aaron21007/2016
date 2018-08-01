@@ -1,0 +1,16 @@
+{
+  "name": "telegram-boot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "boot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.30.0",
+    "os-utils": "0.0.14",
+    "systeminformation": "^3.42.4"
+  }
+}
