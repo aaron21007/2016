@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+
+    </head>
+    <body>
+        <p>Welcome to the socket app</p>
+    </body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io()
+
+        socket.on('connect', ()=>{
+            console.log(`connected to the sever`);
+        })
+
+        socket.on('disconnect', ()=>{
+            console.log(`Desconectando del server`);
+        })
+
+        socket.on('newEmail', ()=>{
+            console.log(`Haz recibido un email`);
+        })
+    </script>
+</html>
