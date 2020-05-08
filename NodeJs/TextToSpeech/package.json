@@ -1,0 +1,24 @@
+{
+  "name": "texttospeech",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.671.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "ibm-watson": "^5.5.0",
+    "install": "^0.13.0",
+    "moment": "^2.25.3",
+    "node-speech": "^1.0.4",
+    "npm": "^6.14.5",
+    "speech-synthesis": "^0.3.2"
+  }
+}

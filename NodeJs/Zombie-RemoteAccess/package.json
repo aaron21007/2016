@@ -1,0 +1,14 @@
+{
+  "name": "zombie-remoteaccess",
+  "version": "1.0.0",
+  "description": "",
+  "main": "zombie.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zombie": "^6.1.4"
+  }
+}
