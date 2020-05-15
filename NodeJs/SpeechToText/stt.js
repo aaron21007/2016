@@ -12,9 +12,16 @@ exports.transcribe = (fileName) => {
       const audio = {
         content: audioBytes,
       };
+
+      let tipo = 'MP3'
+      let sampleRate = 48000
+      if (fileName.includes("wav")) {
+        tipo = 'LINEAR16'
+        sampleRate = 8000
+      }
       const config = {
-        encoding: 'MP3',
-        sampleRateHertz: 48000,
+        encoding: tipo,
+        sampleRateHertz: sampleRate,
         languageCode: 'es-MX',
       };
       const request = {
