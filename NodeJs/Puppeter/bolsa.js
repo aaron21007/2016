@@ -44,15 +44,15 @@ const dale = async (accion) =>{
           
           
           if (precio.match(/[0-9\.]*\+/g) != null) {
-             precio = precio.match(/[0-9\.]*\+/g)[0].replace("+", "")
+             precio = precio.match(/[0-9\.\,]*\+/g)[0].replace("+", "")
           }else{
-            precio = precio.match(/[0-9\.]*\-/g)[0].replace("-", "")
+            precio = precio.match(/[0-9\.\,]*\-/g)[0].replace("-", "")
           }
          console.log(`B---> ${empresa}  ---->  ${precio}`);
 
           let post = {
             fecha: moment().format("YYYY-MM-DD HH:mm:ss"),
-            valor: precio,
+            valor: precio.replace(",", ""),
             titulo: empresa
           }
           connection.query('INSERT INTO Datos SET ?', post, function (error, results, fields) {
