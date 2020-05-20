@@ -16,7 +16,7 @@ connection.connect();
 
 
 
-const acciones = ['AAPL', 'MSFT', 'GCARSOA1.MX', 'ALPEKA.MX']
+const acciones = ['AAPL.MX', 'MSFT.MX', 'GCARSOA1.MX', 'ALPEKA.MX']
 
 const dale = async (accion) =>{
       const browser = await puppeteer.launch();
