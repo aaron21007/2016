@@ -1,15 +1,30 @@
 const puppeteer = require('puppeteer');
+const express = require('express')
+let bodyParser = require('body-parser')
 
-(async () => {
+const app = express()
+app.use(bodyParser.json({
+  limit: '50mb',
+  extended: true
+}))
+app.use(bodyParser.urlencoded({
+  limit: '50mb',
+  extended: true
+}))
+
+
+
+const dale = async (emailData) => {
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.goto('https://validateemailaddress.org', {
-    waitUntil: 'domcontentloaded'
+    waitUntil: 'load'
   });
 
   await page.waitFor('input[name=email]');
 
-  await page.$eval('input[name=email]', el => el.value = 'aaronluna2223@gmail.com');
+  await page.type('input[name=email]', emailData)
   
   await page.click('input[type="submit"]');
 
@@ -17,11 +32,41 @@ const puppeteer = require('puppeteer');
 
   let datos = await page.$eval('#middle', el => el.innerText)
 
-  console.log(`-- -- -- -- -- -- --`);
-  console.log(datos);
+  let lineas = datos.split("\n")
 
+  console.log(`................`);
+  lineas = lineas.filter(function(e){
+    return e
+  })
+  console.log(lineas);
+  let resultado=''
+  for (let i = 0; i < lineas.length; i++) {
+    if (lineas[i].includes(emailData)) {
+        resultado = lineas[i]
+        break;
+    }
+  }
   await browser.close();
-})();
+
+  return resultado;
+}
+
+
+
+app.get('/validaEmail', (req, res) => {
+  let email = req.query.email
+  dale(email).then((result) => {
+    res.json({email: email, resultado: result})
+  }).catch((err) => {
+    console.error(err);
+    res.json({
+      email: email,
+      resultado: 'Invalido'
+    })
+  });
+});
+
+app.listen(1331, () => console.log(`API en puerto :  HTTP!`))
 
 // (async () => {
 //   const browser = await puppeteer.launch();
