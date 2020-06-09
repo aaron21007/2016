@@ -1,0 +1,15 @@
+{
+  "name": "search",
+  "version": "1.0.0",
+  "description": "",
+  "main": "search.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "findit": "^2.0.0",
+    "path": "^0.12.7"
+  }
+}
