@@ -1,14 +1,14 @@
 const puppeteer = require('puppeteer');
 const mysql = require('mysql')
 const moment = require('moment')
-const cron = require('node-cron');
+
 
 
 var connection = mysql.createConnection({
   host: 'localhost',
-  user: 'bolsa2',
-  password: 'escom123',
-  database: 'Bolsa_Mxn'
+  user: 'bolsa',
+  password: 'bolsa123',
+  database: 'BOLSA_MX'
 });
 
 connection.connect();
@@ -16,7 +16,7 @@ connection.connect();
 
 
 
-const acciones = ['AAPL.MX', 'MSFT.MX', 'GCARSOA1.MX', 'ALPEKA.MX']
+const acciones = ['AAPL.MX', 'MSFT.MX', 'GCARSOA1.MX', 'ALPEKA.MX', 'NFLX.MX', 'INTC.MX', 'AMZN.MX', 'ALSEA.MX', 'VOLARA.MX', 'FB.MX', 'SNAP.MX']
 
 const dale = async (accion) =>{
       const browser = await puppeteer.launch();
@@ -66,9 +66,11 @@ const dale = async (accion) =>{
       await browser.close();
 }
 
-cron.schedule('* * * * *', () => {
-  acciones.forEach(async element => {
-    await dale(element)
-  });
-});
 
+
+
+(async()=>{
+acciones.forEach(async element => {
+  await dale(element)
+});
+})();
