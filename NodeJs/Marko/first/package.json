@@ -20,7 +20,7 @@
     "marko": "^4.2.4",
     "marko-starter": "^1.0.0",
     "mysql2": "^1.5.3",
-    "papaparse": "^4.3.7",
+    "papaparse": "^5.2.0",
     "sleep": "^5.1.1"
   },
   "scripts": {
