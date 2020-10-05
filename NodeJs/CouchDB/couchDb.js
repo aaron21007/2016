@@ -1,41 +1,35 @@
-var nano = require('nano')('http://localhost:5984');
+'use strict';
+const nano = require('nano')('http://admin:admin@localhost:5984');
 
 
-/* Definicion del sistema */
+let sms_reports = nano.use('demo')
 
+sms_reports.insert({happy: true, demo:"nososmos nosotros"}, 'conejo').then((body) => {
+    console.log(body);
+});
 
-var db = nano.db.use('node_db');
+sms_reports.get('conejo').then((response) => {
+    console.log(response);
+}).catch((err) => {
+    console.error(err);
+})
 
-
-var data = {
-    name: 'pikachu',
-    skills: ['thunder bolt', 'iron tail', 'quick attack', 'mega punch'],
-    type: 'electric'
-};
-
-
-/* Lista las bases de datos que tenemos */
-
-nano.db.list(function(err, body) {
-    // body is an array
-    body.forEach(function(db) {
-        console.log(db);
+sms_reports.list().then((body) => {
+    body.rows.forEach((doc) => {
+        console.log(doc);
     });
 });
 
 
-/* Se trae la informacion de la base de Datos */
-nano.db.get('node_db', function(err, body) {
-    if (!err) {
-        console.log(body);
-    }
-});
+/* Definicion del sistema */
+// nano.db.create('sms_reports').then((data) => {
+//     // success - response is in 'data'
+//     console.log(`Se creo la base de datos`);
+// }).catch((err) => {
+//     console.error(err);
+//     // failure - error information is in 'err'
+// })
 
-
-/* Ve los cambios que se han hecho */
-
-nano.db.changes('node_db', function(err, body) {
-    if (!err) {
-        console.log(body);
-    }
-});
+// nano.db.get('demo').then((body) => {
+//     console.log(body);
+// })
