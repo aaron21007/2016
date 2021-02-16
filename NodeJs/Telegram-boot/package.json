@@ -11,6 +11,6 @@
   "dependencies": {
     "node-telegram-bot-api": "^0.30.0",
     "os-utils": "0.0.14",
-    "systeminformation": "^3.42.4"
+    "systeminformation": "^5.3.1"
   }
 }
